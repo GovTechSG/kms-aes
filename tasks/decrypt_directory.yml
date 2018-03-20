@@ -4,31 +4,19 @@
 ##############################
 - name: Decrypt encrypted secrets files
   block:
-  - name: Find a list of all encrypted files
-    find:
-      paths: "{{ encrypted_dir }}"
-      patterns: "*"
-      recurse: yes
-      file_type: file
-    register: encrypted
-  - name: Find a list of all encrypted files directories
-    find:
-      paths: "{{ encrypted_dir }}"
-      patterns: "*"
-      recurse: yes
-      file_type: directory
-    register: encrypted_subdirs
   - name: Make directories in decrypted directory
     file:
       state: directory
-      path: "{{ decrypted_dir }}/{{ item.path | relative_from(encrypted_dir) }}"
-    with_items: "{{ encrypted_subdirs.files }}"
+      path: "{{ decrypted_dir }}/{{ item.path }}"
+    with_filetree: "{{ encrypted_dir }}"
+    when: item.state == 'directory'
   - name: Decrypt data
     include_role:
       name: aes-decrypt
     vars:
-      plaintext: "{{ decrypted_dir }}/{{ item.path | relative_from(encrypted_dir) }}"
-      ciphertext: "{{ item.path }}"
-    with_items: "{{ encrypted.files }}"
+      plaintext: "{{ decrypted_dir }}/{{ item.path }}"
+      ciphertext: "{{ item.src }}"
+    with_filetree: "{{ encrypted_dir }}"
+    when: item.state == 'file'
   tags:
     - decrypt
