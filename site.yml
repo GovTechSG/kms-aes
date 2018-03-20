@@ -1,7 +1,11 @@
+##############################################################
+# This playbook contains all the tasks to generate a key and to encrypt
+# and decrypt templates from a source directory.
+##############################################################
 ---
 - hosts: all
   vars:
-    key_id: "alias/foobar"
+    key_id: "alias/terraform"
     cli_json: "{{ playbook_dir }}/cli.json"
     key_spec: AES_256
     key_output: "{{ playbook_dir }}/keys/kms.json"
@@ -13,133 +17,29 @@
     ##############################
     # Include secrets
     ##############################
-    - name: Include secrets
-      include_vars:
-        file: "{{ secrets_file }}"
-        name: secrets
-      tags:
-        - include_secrets
+    - include_tasks: tasks/secrets.yml
+    # vars: secrets_file
     ##############################
     # Generate AES key with KMS
     ##############################
-    - name: Generate AES key with KMS
-      include_role:
-        name: kms-data-key
+    - include_tasks: tasks/generate_key.yml
       vars:
         output: "{{ key_output }}"
-      tags:
-        - generate_key
-
     ##############################
     # Read AES key
     ##############################
-    # The JSON read in will at least have `CiphertextBlob` or optionally `Plaintext`
-    - name: Read AES Key into memory
-      include_vars:
-        file: "{{ key_output }}"
-        name: key_json
-    - name: Set key if already present
-      set_fact:
-        key: "key_json"
-      when: key_json.Plaintext is defined
+    - include_tasks: tasks/read_key.yml
+      vars:
+        key_file: "{{ key_output }}"
+        fact_key: "key_hex"
     ##############################
-    # Decrypt AES key if neccessary
+    # Encrypt template files from a source directory to a destination directory
     ##############################
-    - name: Decrypt key to memory, if neccessary
-      block:
-        - name: Decrypt with KMS
-          include_role:
-            name: kms-decrypt
-          vars:
-            fact_key: "key"
-            payload: "{{ key_json.CiphertextBlob }}"
-      tags:
-        - decrypt_key
-      when: key_json.Plaintext is not defined
+    - include_tasks: tasks/encrypt_directory.yml
+      # variables: template_dir, template_dir
+
     ##############################
-    # Convert key to hex
+    # Decrypt all files in a directory into a destination directory
     ##############################
-    - name: Convert key to hex
-      set_fact:
-        key_hex: "{{ key | base64_to_hex }}"
-    ##############################
-    # Encrypt template files
-    ##############################
-    - name: Encrypt template files
-      block:
-      - name: Find a list of all template files
-        find:
-          paths: "{{ template_dir }}"
-          patterns: "*"
-          recurse: yes
-          file_type: file
-        register: templates
-      - name: Find a list of all template files directories
-        find:
-          paths: "{{ template_dir }}"
-          patterns: "*"
-          recurse: yes
-          file_type: directory
-        register: template_subdirs
-      - name: Temporary Directory for rendered templates
-        tempfile:
-          state: directory
-        register: template_rendered
-      - name: Create sub-directories for rendered templates
-        file:
-          state: directory
-          path: "{{ template_rendered.path }}/{{ item.path | relative_from(template_dir) }}"
-        with_items: "{{ template_subdirs.files }}"
-      - name: Render template
-        template:
-          src: "{{ item.path }}"
-          dest: "{{ template_rendered.path }}/{{ item.path | relative_from(template_dir) }}"
-        with_items: "{{ templates.files }}"
-      - name: Make directories in encrypted directory
-        file:
-          state: directory
-          path: "{{ encrypted_dir }}/{{ item.path | relative_from(template_dir) }}"
-        with_items: "{{ template_subdirs.files }}"
-      # I would like to use an AEAD scheme but `openssl enc` does not support AEAD
-      - name: Encrypt data
-        include_role:
-          name: aes-encrypt
-        vars:
-          plaintext: "{{ template_rendered.path }}/{{ item.path | relative_from(template_dir) }}"
-          ciphertext: "{{ encrypted_dir }}/{{ item.path | relative_from(template_dir) }}"
-        with_items: "{{ templates.files }}"
-      tags:
-        - encrypt
-    ##############################
-    # Decrypt files
-    ##############################
-    - name: Decrypt encrypted secrets files
-      block:
-      - name: Find a list of all encrypted files
-        find:
-          paths: "{{ encrypted_dir }}"
-          patterns: "*"
-          recurse: yes
-          file_type: file
-        register: encrypted
-      - name: Find a list of all encrypted files directories
-        find:
-          paths: "{{ encrypted_dir }}"
-          patterns: "*"
-          recurse: yes
-          file_type: directory
-        register: encrypted_subdirs
-      - name: Make directories in decrypted directory
-        file:
-          state: directory
-          path: "{{ decrypted_dir }}/{{ item.path | relative_from(encrypted_dir) }}"
-        with_items: "{{ encrypted_subdirs.files }}"
-      - name: Decrypt data
-        include_role:
-          name: aes-decrypt
-        vars:
-          plaintext: "{{ decrypted_dir }}/{{ item.path | relative_from(encrypted_dir) }}"
-          ciphertext: "{{ item.path }}"
-        with_items: "{{ encrypted.files }}"
-      tags:
-        - decrypt
+    - include_tasks: tasks/decrypt_directory.yml
+      # variables: encrypted_dir, decrypted_dir

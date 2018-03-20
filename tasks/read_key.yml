@@ -1,0 +1,32 @@
+---
+##############################
+# Read AES key
+##############################
+# The JSON read in will at least have `CiphertextBlob` or optionally `Plaintext`
+- name: Read AES Key into memory
+  include_vars:
+    file: "{{ key_file }}"
+    name: key_json
+- name: Set key if already present
+  set_fact:
+    key: "key_json"
+  when: key_json.Plaintext is defined
+##############################
+# Decrypt AES key if neccessary
+##############################
+- name: Decrypt key to memory, if neccessary
+  block:
+    - name: Decrypt with KMS
+      include_role:
+        name: kms-decrypt
+      vars:
+        fact_key: "key"
+        payload: "{{ key_json.CiphertextBlob }}"
+  tags:
+    - decrypt_key
+  when: key_json.Plaintext is not defined
+##############################
+# Convert key to hex
+##############################
+- name: Convert key to hex
+  set_fact: {"{{ fact_key | default('key_hex') }}":"{{ key | base64_to_hex }}"}

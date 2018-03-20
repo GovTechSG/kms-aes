@@ -1,0 +1,49 @@
+---
+##############################
+# Encrypt template files from a source directory to a destination directory
+##############################
+- name: Encrypt template files
+  block:
+  - name: Find a list of all template files
+    find:
+      paths: "{{ template_dir }}"
+      patterns: "*"
+      recurse: yes
+      file_type: file
+    register: templates
+  - name: Find a list of all template files directories
+    find:
+      paths: "{{ template_dir }}"
+      patterns: "*"
+      recurse: yes
+      file_type: directory
+    register: template_subdirs
+  - name: Temporary Directory for rendered templates
+    tempfile:
+      state: directory
+    register: template_rendered
+  - name: Create sub-directories for rendered templates
+    file:
+      state: directory
+      path: "{{ template_rendered.path }}/{{ item.path | relative_from(template_dir) }}"
+    with_items: "{{ template_subdirs.files }}"
+  - name: Render template
+    template:
+      src: "{{ item.path }}"
+      dest: "{{ template_rendered.path }}/{{ item.path | relative_from(template_dir) }}"
+    with_items: "{{ templates.files }}"
+  - name: Make directories in encrypted directory
+    file:
+      state: directory
+      path: "{{ encrypted_dir }}/{{ item.path | relative_from(template_dir) }}"
+    with_items: "{{ template_subdirs.files }}"
+  # I would like to use an AEAD scheme but `openssl enc` does not support AEAD
+  - name: Encrypt data
+    include_role:
+      name: aes-encrypt
+    vars:
+      plaintext: "{{ template_rendered.path }}/{{ item.path | relative_from(template_dir) }}"
+      ciphertext: "{{ encrypted_dir }}/{{ item.path | relative_from(template_dir) }}"
+    with_items: "{{ templates.files }}"
+  tags:
+    - encrypt

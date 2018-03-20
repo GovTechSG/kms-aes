@@ -1,0 +1,9 @@
+---
+##############################
+# Generate AES key with KMS
+##############################
+- name: Generate AES key with KMS
+  include_role:
+    name: kms-data-key
+  tags:
+    - generate_key
