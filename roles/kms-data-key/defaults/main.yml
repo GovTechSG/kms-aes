@@ -1,0 +1,13 @@
+---
+# KMS key ID
+key_id: "alias/foobar"
+# Path to CLI JSON file that will contain the encryption context
+cli_json: "files/cli.json"
+# Type of key to generate. Either `AES_128` or `AES_256`.
+key_spec: AES_256
+# Include the plaintext key in the output
+plaintext: false
+# Path to save the output to
+output: "{{ playbook_dir }}/keys/kms.json"
+# Whether to overwrite or not
+overwrite: false

@@ -1,0 +1,8 @@
+{
+    "EncryptionContext": {
+        "type": "key",
+        "application": "core",
+        "service": "nomad-client",
+        "usage": "encryption"
+    }
+}

@@ -1,0 +1,15 @@
+---
+- name: Generate IV
+  set_fact:
+    iv: "{{ 16 | random_bytes }}"
+- name: Encrypt data and append IV
+  shell: |
+    openssl enc \
+      -aes-256-cbc \
+      -e \
+      -in "{{ plaintext }}" \
+      -out "{{ ciphertext }}" \
+      -K "{{ key_hex }}" \
+      -iv "{{ iv }}"
+- name: Append IV as Binary
+  shell: "echo -n '{{ iv }}' | xxd -r -p >> '{{ ciphertext }}'"

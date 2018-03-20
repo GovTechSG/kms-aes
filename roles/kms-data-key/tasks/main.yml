@@ -1,0 +1,25 @@
+---
+- name: Check if output exists
+  stat:
+    path: "{{ output }}"
+  register: output_stat
+- name: Refuse to overwrite
+  fail:
+    msg: Output exists. Not overwriting
+  when: not overwrite and output_stat.stat.exists
+- name: Set AWS CLI command
+  set_fact:
+    aws_command: "{% if plaintext %}generate-data-key{% else %}generate-data-key-without-plaintext{% endif %}"
+- name: Generate data key
+  shell: |
+    aws kms {{ aws_command }} \
+    --key-id {{ key_id }} \
+    --cli-input-json file://{{ cli_json }} \
+    --key-spec {{ key_spec }}
+  register: aws_output
+- name: Output to file
+  copy:
+    content: "{{ aws_output.stdout }}"
+    force: yes
+    dest: "{{ output }}"
+    mode: 0600

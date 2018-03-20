@@ -1,0 +1,7 @@
+---
+# Base64 encoded encrypted payload
+payload: ""
+# Path to CLI JSON file that will contain the encryption context
+cli_json: "files/cli.json"
+# The fact key to set the base64 encoded decrypted content to
+fact_key: decrypted_base64

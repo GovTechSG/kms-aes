@@ -1,0 +1,7 @@
+---
+# Path to plaintext
+plaintext: ""
+# Path to cipertext output. The IV is appended at the end of the cipertext
+ciphertext: ""
+# Key for encryption, in Hex
+key_hex: ""
