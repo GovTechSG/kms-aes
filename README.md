@@ -101,3 +101,24 @@ For example, to execute the playbook locally on your machine, you can do somethi
 ```bash
 ansible-playbook --inventory inventory --ask-vault-pass list.yml
 ```
+
+## Roles
+
+The `roles` directory contains some common tasks that you might be able to reuse in your own
+playbooks.
+
+- `filters`: Contains some Jinja filters that are used by the rest of the roles and tasks.
+- `kms-data-key`: Use AWS KMS to generate a new data key
+- `kms-decrypt`: Use AWS KMS to decrypt some encrypted ciphertext.
+- `aes-encrypt`: Encrypt plaintext with AES 256 CBC. The IV is appended as the final 16 bytes of the ciphertext.
+- `aes-decrypt`: Decrypt ciphertext with AES 256 CBC. The IV is assumed to be the final 16 bytes of the ciphertext.
+
+## Tasks
+
+The `tasks` directory contains some reusable tasks that you can use in your own playbooks.
+
+- `secrets`: This simply includes a variable file to your play.
+- `generate_key`: Use KMS to generate a new data key.
+- `read_key`: Read and optionally decrypt a KMS JSON output containing the data key for our encryption and decryption operations.
+- `encrypt_directory` and `decrypt_directory`: Encrypt and decrypt files on a directory basis.
+- `encrypt_list` and `decrypt_list`: Encrypt and decrypt files based on a provided list.
