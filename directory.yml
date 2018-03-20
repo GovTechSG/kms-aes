@@ -16,10 +16,14 @@
   tasks:
     - include_role:
         name: filters
+      tags:
+        - always
     ##############################
     # Include secrets
     ##############################
     - include_tasks: tasks/secrets.yml
+      tags:
+        - encrypt
     # vars: secrets_file
     ##############################
     # Generate AES key with KMS
@@ -27,6 +31,8 @@
     - include_tasks: tasks/generate_key.yml
       vars:
         output: "{{ key_output }}"
+      tags:
+        - generate_key
     ##############################
     # Read AES key
     ##############################
@@ -34,14 +40,20 @@
       vars:
         key_file: "{{ key_output }}"
         fact_key: "key_hex"
+      tags:
+        - encrypt
+        - decrypt
     ##############################
     # Encrypt template files from a source directory to a destination directory
     ##############################
     - include_tasks: tasks/encrypt_directory.yml
       # variables: template_dir, template_dir
-
+      tags:
+        - encrypt
     ##############################
     # Decrypt all files in a directory into a destination directory
     ##############################
     - include_tasks: tasks/decrypt_directory.yml
       # variables: encrypted_dir, decrypted_dir
+      tags:
+        - decrypt

@@ -22,8 +22,6 @@
       vars:
         fact_key: "key"
         payload: "{{ key_json.CiphertextBlob }}"
-  tags:
-    - decrypt_key
   when: key_json.Plaintext is not defined
 ##############################
 # Convert key to hex

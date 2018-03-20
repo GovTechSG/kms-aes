@@ -18,5 +18,4 @@
       ciphertext: "{{ item.src }}"
     with_filetree: "{{ encrypted_dir }}"
     when: item.state == 'file'
-  tags:
-    - decrypt
+

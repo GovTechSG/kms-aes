@@ -17,10 +17,14 @@
   tasks:
     - include_role:
         name: filters
+      tags:
+        - always
     ##############################
     # Include secrets
     ##############################
     - include_tasks: tasks/secrets.yml
+      tags:
+        - encrypt
     # vars: secrets_file
     ##############################
     # Generate AES key with KMS
@@ -28,6 +32,8 @@
     - include_tasks: tasks/generate_key.yml
       vars:
         output: "{{ key_output }}"
+      tags:
+        - generate_key
     ##############################
     # Read AES key
     ##############################
@@ -35,6 +41,9 @@
       vars:
         key_file: "{{ key_output }}"
         fact_key: "key_hex"
+      tags:
+        - encrypt
+        - decrypt
     ##############################
     # Encrypt template files defined in a list
     # List should be provided with the `templates`
@@ -42,6 +51,8 @@
     # `encrypted` key for the path to the encrypted output.
     ##############################
     - include_tasks: tasks/encrypt_list.yml
+      tags:
+        - encrypt
     ##############################
     # Decrypt template files defined in a list
     # List should be provided with the `templates`
@@ -49,3 +60,5 @@
     # and a `encrypted` key for the path to the encrypted input.
     ##############################
     - include_tasks: tasks/decrypt_list.yml
+      tags:
+        - decrypt

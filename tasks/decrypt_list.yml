@@ -19,5 +19,4 @@
       plaintext: "{{ item.decrypted }}"
       ciphertext: "{{ item.encrypted }}"
     with_items: "{{ templates }}"
-  tags:
-    - decrypt
+

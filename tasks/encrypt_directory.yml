@@ -35,5 +35,3 @@
       ciphertext: "{{ encrypted_dir }}/{{ item.path }}"
     with_filetree: "{{ template_dir }}"
     when: item.state == 'file'
-  tags:
-    - encrypt
