@@ -19,7 +19,7 @@
   - name: Make directories in encrypted directory
     file:
       state: directory
-      path: "{{ item.encrypted | parent_directory }}"
+      path: "{{ item.encrypted | dirname }}"
     with_items: "{{ templates }}"
   # I would like to use an AEAD scheme but `openssl enc` does not support AEAD
   - name: Encrypt data
