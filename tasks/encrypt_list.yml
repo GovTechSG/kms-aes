@@ -1,0 +1,33 @@
+---
+##############################
+# Encrypt template files defined in a list
+# List should be provided with the `templates`
+# Each item in the list should have a `template`` key for the path to the template and a
+# `encrypted` key for the path to the encrypted output.
+##############################
+- name: Encrypt template files
+  block:
+  - name: Temporary Directory for rendered templates
+    tempfile:
+      state: directory
+    register: template_rendered
+  - name: Render template
+    template:
+      src: "{{ item.1.template }}"
+      dest: "{{ template_rendered.path }}/{{ item.0 }}"
+    with_indexed_items: "{{ templates }}"
+  - name: Make directories in encrypted directory
+    file:
+      state: directory
+      path: "{{ item.encrypted | parent_directory }}"
+    with_items: "{{ templates }}"
+  # I would like to use an AEAD scheme but `openssl enc` does not support AEAD
+  - name: Encrypt data
+    include_role:
+      name: aes-encrypt
+    vars:
+      plaintext: "{{ template_rendered.path }}/{{ item.0 }}"
+      ciphertext: "{{ item.1.encrypted }}"
+    with_indexed_items: "{{ templates }}"
+  tags:
+    - encrypt

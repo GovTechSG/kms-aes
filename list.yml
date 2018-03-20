@@ -1,0 +1,51 @@
+##############################################################
+# This playbook contains all the tasks to generate a key and to encrypt
+# and decrypt templates defined in a list
+##############################################################
+---
+- hosts: all
+  vars:
+    key_id: "alias/terraform"
+    cli_json: "{{ playbook_dir }}/cli.json"
+    key_spec: AES_256
+    key_output: "{{ playbook_dir }}/keys/kms.json"
+    secrets_file: "{{ playbook_dir }}/secrets.yml"
+    templates:
+      - template: templates/test.json
+        encrypted: encrypted/test.json
+        decrypted: decrypted/test.json
+  tasks:
+    - include_role:
+        name: filters
+    ##############################
+    # Include secrets
+    ##############################
+    - include_tasks: tasks/secrets.yml
+    # vars: secrets_file
+    ##############################
+    # Generate AES key with KMS
+    ##############################
+    - include_tasks: tasks/generate_key.yml
+      vars:
+        output: "{{ key_output }}"
+    ##############################
+    # Read AES key
+    ##############################
+    - include_tasks: tasks/read_key.yml
+      vars:
+        key_file: "{{ key_output }}"
+        fact_key: "key_hex"
+    ##############################
+    # Encrypt template files defined in a list
+    # List should be provided with the `templates`
+    # Each item in the list should have a `template`` key for the path to the template and a
+    # `encrypted` key for the path to the encrypted output.
+    ##############################
+    - include_tasks: tasks/encrypt_list.yml
+    ##############################
+    # Decrypt template files defined in a list
+    # List should be provided with the `templates`
+    # Each item in the list should have a `decrypted`` key for the path to the decrypted output
+    # and a `encrypted` key for the path to the encrypted input.
+    ##############################
+    - include_tasks: tasks/decrypt_list.yml
