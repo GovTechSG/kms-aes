@@ -10,6 +10,7 @@
     state: file
   register: encrypted_temp
 # Don't use `copy`: it cannot handle binary
+# See https://github.com/ansible/ansible/issues/20150
 - name: Write blob to temporary file
   shell: |
     echo -n '{{ payload }}' | \
@@ -25,5 +26,3 @@
 - name: "Set fact `{{ fact_key }}`"
 # See https://stackoverflow.com/questions/38143647/set-fact-with-dynamic-key-name-in-ansible
   set_fact: {"{{ fact_key }}":"{{ decrypted_plaintext.stdout }}"}
-
-
