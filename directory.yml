@@ -22,9 +22,9 @@
     # Include secrets
     ##############################
     - include_tasks: tasks/secrets.yml
+      # variables: secrets_file
       tags:
         - encrypt
-    # vars: secrets_file
     ##############################
     # Generate AES key with KMS
     ##############################
@@ -47,7 +47,7 @@
     # Encrypt template files from a source directory to a destination directory
     ##############################
     - include_tasks: tasks/encrypt_directory.yml
-      # variables: template_dir, template_dir
+      # variables: encrypted_dir, template_dir
       tags:
         - encrypt
     ##############################
