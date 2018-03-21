@@ -22,10 +22,10 @@
     ##############################
     # Include secrets
     ##############################
-    - include_tasks: tasks/secrets.yml
+    - include_tasks: tasks/include_secrets.yml
+      # variables: secrets_file
       tags:
         - encrypt
-    # vars: secrets_file
     ##############################
     # Generate AES key with KMS
     ##############################
