@@ -17,6 +17,10 @@
     --cli-input-json file://{{ cli_json }} \
     --key-spec {{ key_spec }}
   register: aws_output
+- name: Create key output directory if doesn't exist
+  file:
+    path: "{{ output | dirname }}"
+    state: directory
 - name: Output to file
   copy:
     content: "{{ aws_output.stdout }}"
