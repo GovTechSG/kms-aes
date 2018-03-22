@@ -60,6 +60,72 @@ Use the tags to skip or only execute certain tasks.
 - `encrypt`: Encrypt data
 - `decrypt`: Decrypt data
 
+### Vault Playbook
+
+This playbook is defined in `vault.yml`. This playbook is the most
+straightforward and does not require any templates. The intent is to transform
+the ansible encrypted vault file into AES key encrypted vault file in the
+encrypt step, and also to transform the AES key encrypted vault file to
+decrypted vault file for direct `include_vars`.
+
+The following variables are needed:
+
+- `key_id`: ID of the CMK.
+- `cli_json`: Path to a [CLI JSON parameter](https://docs.aws.amazon.com/cli/latest/userguide/cli-using-param.html#cli-using-param-json)
+  file. Use this to define the encryption context for your encrypted data key.
+  You can use the default `cli.json` as a base.
+- `key_output`: Path to output the encrypted data key to.
+- `vault_file`: Path to the ansible vault file. Assumes to be ansible-vault
+  encrypted, but also works for non-encrypted vault, for e.g. plain YAML file.
+- `encrypted_vault_file`: Path to the AES key encrypted vault file.
+- `decrypted_vault_file`: Path to the AES key decrypted vault file.
+
+To test this playbook, run the following in the repository root to create your
+secret:
+
+```bash
+printf -- "---\nkey: value" > secrets.yml
+ansible-vault encrypt secrets.yml
+```
+
+Think of a vault password and enter in this password twice to ansible-vault
+encrypt the `secrets.yml` vault file. In real use case, the ansible-vault
+encrypted vault file should have already been provided and is safe to check into
+any repository.
+
+Next we can test out the `vault.yml` playbook by first generating the AWS data
+key.
+
+```bash
+ansible-playbook -i inventory vault.yml -t generate_key
+```
+
+By default, this should generate the AWS data key in `keys/kms.json`. The
+`KeyId` value points to the CMK stored in AWS, while the `CiphertextBlob` value
+is the generate AWS data key, but encrypted with CMK.
+
+Next we will transform the encryption on the vault file from ansible-vault
+encrypted version to a AWS data key encrypted version.
+
+```bash
+ansible-playbook -i inventory --ask-vault-pass vault.yml -t encrypt
+```
+
+This should generate the `secrets.encrypted.yml` file. In real use case, this is
+the point where both the `keys/kms.json` and `secrets.encrypted.yml` should be
+copied into the custom AMI.
+
+To complete the picture, run the following to see the decrypted outcome:
+
+```bash
+ansible-playbook -i inventory --ask-vault-pass vault.yml -t decrypt
+```
+
+This should generate the `secrets.decrypted.yml` file, where you should see
+the original content of the `secrets.yml` without any encryption. In real use
+case, this should only be done in the bootstrapping phase of the custom AMI to
+get the secrets.
+
 ### Directory Playbook
 
 This playbook is defined in `directory.yml`. Files are encrypted from a template
@@ -72,7 +138,7 @@ The following variables are needed:
 - `cli_json`: Path to a [CLI JSON parameter](https://docs.aws.amazon.com/cli/latest/userguide/cli-using-param.html#cli-using-param-json)
   file. Use this to define the encryption context for your encrypted data key.
   You can use the default `cli.json` as a base.
-- `key_output`: Path to output the encrypted data key to
+- `key_output`: Path to output the encrypted data key to.
 - `template_dir`: Directory where your templates are.
 - `encrypted_dir`: Directory to output encrypted files to. This will also be the
   input directory when decrypting.
