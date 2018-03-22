@@ -10,6 +10,7 @@
     key_spec: AES_256
     key_output: "{{ playbook_dir }}/keys/kms.json"
     secrets_file: "{{ playbook_dir }}/secrets.yml"
+    overwrite: false
     templates:
       - template: templates/test.json
         encrypted: encrypted/test.json

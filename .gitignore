@@ -5,3 +5,5 @@ templates
 encrypted
 decrypted
 /secrets.yml
+/secrets.encrypted.yml
+/secrets.decrypted.yml
