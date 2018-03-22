@@ -199,7 +199,8 @@ in your own playbooks.
 
 ## Tasks
 
-The `tasks` directory contains some reusable tasks that you can use in your own playbooks.
+The `tasks` directory contains some reusable tasks that you can use in your own
+playbooks.
 
 - `secrets`: This simply includes a variable file to your play.
 - `generate_key`: Use KMS to generate a new data key.
