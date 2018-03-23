@@ -1,0 +1,21 @@
+---
+##############################
+# Encrypt vault file with secrets within
+# No special field is required
+##############################
+- name: Encrypt decrypted ansible vault file
+  block:
+    - name: Create temp file to hold decrypted vault content
+      tempfile:
+        state: file
+      register: temp_vault
+    - name: Vault decrypt and copy content into temp file
+      copy:
+        src: "{{ vault_file }}"
+        dest: "{{ temp_vault.path }}"
+    - name: Encrypt decrypted vault content with AWS data key into file
+      include_role:
+        name: aes-encrypt
+      vars:
+        plaintext: "{{ temp_vault.path }}"
+        ciphertext: "{{ encrypted_vault_file }}"

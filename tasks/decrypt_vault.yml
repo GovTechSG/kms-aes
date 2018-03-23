@@ -1,0 +1,13 @@
+---
+##############################
+# Decrypt AWS data key encrypted vault file with secrets within
+# No special field is required
+##############################
+- name: Decrypt AWS data key encrypted vault file
+  block:
+    - name: Decrypt AWS data key encrypted vault content into file
+      include_role:
+        name: aes-decrypt
+      vars:
+        plaintext: "{{ decrypted_vault_file }}"
+        ciphertext: "{{ encrypted_vault_file }}"

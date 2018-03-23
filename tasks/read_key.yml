@@ -24,7 +24,7 @@
         payload: "{{ key_json.CiphertextBlob }}"
   when: key_json.Plaintext is not defined
 ##############################
-# Convert key to hex
+# Convert key (plaintext) to hex
 ##############################
-- name: Convert key to hex
+- name: Convert key (plaintext) to hex
   set_fact: {"{{ fact_key | default('key_hex') }}":"{{ key | base64_to_hex }}"}

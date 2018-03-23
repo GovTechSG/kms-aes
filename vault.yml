@@ -1,6 +1,6 @@
 ##############################################################
 # This playbook contains all the tasks to generate a key and to encrypt
-# and decrypt templates from a source directory.
+# and decrypt the entire decrypted vault.
 ##############################################################
 ---
 - hosts: all
@@ -9,23 +9,15 @@
     cli_json: "{{ playbook_dir }}/cli.json"
     key_spec: AES_256
     key_output: "{{ playbook_dir }}/keys/kms.json"
-    template_dir: "{{ playbook_dir }}/templates"
-    encrypted_dir: "{{ playbook_dir }}/encrypted"
-    decrypted_dir: "{{ playbook_dir }}/decrypted"
-    secrets_file: "{{ playbook_dir }}/secrets.yml"
+    vault_file: "{{ playbook_dir }}/secrets.yml"
+    encrypted_vault_file: "{{ playbook_dir }}/secrets.encrypted.yml"
+    decrypted_vault_file: "{{ playbook_dir }}/secrets.decrypted.yml"
     overwrite: false
   tasks:
     - include_role:
         name: filters
       tags:
         - always
-    ##############################
-    # Include secrets
-    ##############################
-    - include_tasks: tasks/include_secrets.yml
-      # variables: secrets_file
-      tags:
-        - encrypt
     ##############################
     # Generate AES key with KMS
     ##############################
@@ -47,14 +39,14 @@
     ##############################
     # Encrypt template files from a source directory to a destination directory
     ##############################
-    - include_tasks: tasks/encrypt_directory.yml
-      # variables: encrypted_dir, template_dir
+    - include_tasks: tasks/encrypt_vault.yml
+      # variables: vault_file, encrypted_vault_file
       tags:
         - encrypt
     ##############################
     # Decrypt all files in a directory into a destination directory
     ##############################
-    - include_tasks: tasks/decrypt_directory.yml
-      # variables: encrypted_dir, decrypted_dir
+    - include_tasks: tasks/decrypt_vault.yml
+      # variables: encrypted_vault_file, decrypted_vault_file
       tags:
         - decrypt

@@ -10,6 +10,7 @@
     key_spec: AES_256
     key_output: "{{ playbook_dir }}/keys/kms.json"
     secrets_file: "{{ playbook_dir }}/secrets.yml"
+    overwrite: false
     templates:
       - template: templates/test.json
         encrypted: encrypted/test.json
@@ -22,10 +23,10 @@
     ##############################
     # Include secrets
     ##############################
-    - include_tasks: tasks/secrets.yml
+    - include_tasks: tasks/include_secrets.yml
+      # variables: secrets_file
       tags:
         - encrypt
-    # vars: secrets_file
     ##############################
     # Generate AES key with KMS
     ##############################
