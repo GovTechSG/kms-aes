@@ -30,5 +30,4 @@
   - name: Convert key (plaintext) to hex
     set_fact: {"{{ fact_key | default('key_hex') }}":"{{ key | base64_to_hex }}"}
   tags:
-    - encrypt
-    - decrypt
+    - always
