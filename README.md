@@ -118,7 +118,7 @@ copied into the custom AMI.
 To complete the picture, run the following to see the decrypted outcome:
 
 ```bash
-ansible-playbook -i inventory --ask-vault-pass vault.yml -t decrypt
+ansible-playbook -i inventory vault.yml -t decrypt
 ```
 
 This should generate the `secrets.decrypted.yml` file, where you should see
