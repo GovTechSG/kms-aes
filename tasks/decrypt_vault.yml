@@ -11,3 +11,5 @@
       vars:
         plaintext: "{{ decrypted_vault_file }}"
         ciphertext: "{{ encrypted_vault_file }}"
+  tags:
+    - decrypt

@@ -1,23 +1,26 @@
 ---
-- name: Create a temporary file for ciphertext
-  tempfile:
-    state: file
-  register: ciphertext_temp
-- name: Copy ciphertext to temp file
-  copy:
-    src: "{{ ciphertext }}"
-    dest: "{{ ciphertext_temp.path }}"
-- name: Truncate temporary ciphertext path
-  shell: "truncate --size=-16 '{{ ciphertext_temp.path }}'"
-- name: Read IV
-  shell: tail -c 16 '{{ ciphertext }}' | xxd -p -c 32
-  register: iv
-- name: Decrypt data
-  shell: |
-    openssl enc \
-      -aes-256-cbc \
-      -d \
-      -in "{{ ciphertext_temp.path }}" \
-      -out "{{ plaintext }}" \
-      -K "{{ key_hex }}" \
-      -iv "{{ iv.stdout }}"
+- block:
+  - name: Create a temporary file for ciphertext
+    tempfile:
+      state: file
+    register: ciphertext_temp
+  - name: Copy ciphertext to temp file
+    copy:
+      src: "{{ ciphertext }}"
+      dest: "{{ ciphertext_temp.path }}"
+  - name: Truncate temporary ciphertext path
+    shell: "truncate --size=-16 '{{ ciphertext_temp.path }}'"
+  - name: Read IV
+    shell: tail -c 16 '{{ ciphertext }}' | xxd -p -c 32
+    register: iv
+  - name: Decrypt data
+    shell: |
+      openssl enc \
+        -aes-256-cbc \
+        -d \
+        -in "{{ ciphertext_temp.path }}" \
+        -out "{{ plaintext }}" \
+        -K "{{ key_hex }}" \
+        -iv "{{ iv.stdout }}"
+  tags:
+    - decrypt

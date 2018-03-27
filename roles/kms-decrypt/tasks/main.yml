@@ -5,24 +5,28 @@
 # Unfortunately, due to a bug in Ansible, we cannot share the variables across roles.
 # See https://github.com/ansible/ansible/issues/21890
 #
-- name: Get temporary file
-  tempfile:
-    state: file
-  register: encrypted_temp
-# Don't use `copy`: it cannot handle binary
-# See https://github.com/ansible/ansible/issues/20150
-- name: Write blob to temporary file
-  shell: |
-    echo -n '{{ payload }}' | \
-    base64 -d -w 0 - > {{ encrypted_temp.path }}
-- name: Decrypt with KMS
-  shell: |
-    aws kms decrypt \
-    --cli-input-json file://{{ cli_json }} \
-    --ciphertext-blob fileb://{{ encrypted_temp.path }} \
-    --output text \
-    --query Plaintext
-  register: decrypted_plaintext
-- name: "Set fact `{{ fact_key }}`"
-# See https://stackoverflow.com/questions/38143647/set-fact-with-dynamic-key-name-in-ansible
-  set_fact: {"{{ fact_key }}":"{{ decrypted_plaintext.stdout }}"}
+- block:
+  - name: Get temporary file
+    tempfile:
+      state: file
+    register: encrypted_temp
+  # Don't use `copy`: it cannot handle binary
+  # See https://github.com/ansible/ansible/issues/20150
+  - name: Write blob to temporary file
+    shell: |
+      echo -n '{{ payload }}' | \
+      base64 -d -w 0 - > {{ encrypted_temp.path }}
+  - name: Decrypt with KMS
+    shell: |
+      aws kms decrypt \
+      --cli-input-json file://{{ cli_json }} \
+      --ciphertext-blob fileb://{{ encrypted_temp.path }} \
+      --output text \
+      --query Plaintext
+    register: decrypted_plaintext
+  - name: "Set fact `{{ fact_key }}`"
+  # See https://stackoverflow.com/questions/38143647/set-fact-with-dynamic-key-name-in-ansible
+    set_fact: {"{{ fact_key }}":"{{ decrypted_plaintext.stdout }}"}
+  tags:
+    - encrypt
+    - decrypt
