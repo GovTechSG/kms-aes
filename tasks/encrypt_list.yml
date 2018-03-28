@@ -29,4 +29,5 @@
       plaintext: "{{ template_rendered.path }}/{{ item.0 }}"
       ciphertext: "{{ item.1.encrypted }}"
     with_indexed_items: "{{ templates }}"
-
+  tags:
+    - encrypt

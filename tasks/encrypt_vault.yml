@@ -19,3 +19,5 @@
       vars:
         plaintext: "{{ temp_vault.path }}"
         ciphertext: "{{ encrypted_vault_file }}"
+  tags:
+    - encrypt
