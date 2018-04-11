@@ -20,6 +20,10 @@
       dest: "{{ template_rendered.path }}/{{ item.path }}"
     with_filetree: "{{ template_dir }}"
     when: item.state == 'file'
+  - name: Make encrypted directory
+    file:
+      state: directory
+      path: "{{ encrypted_dir }}"
   - name: Make directories in encrypted directory
     file:
       state: directory
@@ -33,7 +37,7 @@
     vars:
       plaintext: "{{ item.src }}"
       ciphertext: "{{ encrypted_dir }}/{{ item.path }}"
-    with_filetree: "{{ template_dir }}"
+    with_filetree: "{{ template_rendered.path }}"
     when: item.state == 'file'
   tags:
     - encrypt
