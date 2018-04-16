@@ -16,7 +16,7 @@
       aws kms {{ aws_command }} \
       --key-id {{ key_id }} \
       --cli-input-json file://{{ cli_json }} \
-      --key-spec {{ key_spec }}
+      --key-spec {{ key_spec }} \
       --output json
     register: aws_output
   - name: Create key output directory if doesn't exist
