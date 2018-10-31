@@ -12,10 +12,18 @@
     register: encrypted_temp
   # Don't use `copy`: it cannot handle binary
   # See https://github.com/ansible/ansible/issues/20150
-  - name: Write blob to temporary file
+  - name: Write blob to temporary file for MacOSX
+    shell: |
+      echo -n '{{ payload }}' | \
+      gbase64 -d -w 0 - > {{ encrypted_temp.path }}
+    args:
+     executable: /bin/bash
+    when: ansible_distribution == 'MacOSX'
+  - name: Write blob to temporary file for other OS
     shell: |
       echo -n '{{ payload }}' | \
       base64 -d -w 0 - > {{ encrypted_temp.path }}
+    when: ansible_distribution != 'MacOSX'
   - name: Decrypt with KMS
     shell: |
       aws kms decrypt \

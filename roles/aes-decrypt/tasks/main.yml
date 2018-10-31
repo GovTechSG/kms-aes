@@ -8,8 +8,12 @@
     copy:
       src: "{{ ciphertext }}"
       dest: "{{ ciphertext_temp.path }}"
-  - name: Truncate temporary ciphertext path
+  - name: Truncate temporary ciphertext path for MacOSX
+    shell: "gtruncate --size=-16 '{{ ciphertext_temp.path }}'"
+    when: ansible_distribution == 'MacOSX'
+  - name: Truncate temporary ciphertext path for other OS
     shell: "truncate --size=-16 '{{ ciphertext_temp.path }}'"
+    when: ansible_distribution != 'MacOSX'
   - name: Read IV
     shell: tail -c 16 '{{ ciphertext }}' | xxd -p -c 32
     register: iv
